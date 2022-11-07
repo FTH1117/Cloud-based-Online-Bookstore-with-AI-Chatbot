@@ -22,16 +22,7 @@ $param3 = '%' . $search . '%';
 $where = '';
 $where .= $search ? 'WHERE (t.first_name LIKE :search OR t.last_name LIKE :search OR t.id LIKE :search OR t.txn_id LIKE :search OR t.payer_email LIKE :search) ' : '';
 // Add filters
-// Payment status filter
-if ($status == 1) $where .= $where ? 'AND payment_status = "Completed" ' : 'WHERE payment_status = "Completed" ';
-if ($status == 2) $where .= $where ? 'AND payment_status = "Pending" ' : 'WHERE payment_status = "Pending" ';
-if ($status == 3) $where .= $where ? 'AND payment_status = "Cancelled" ' : 'WHERE payment_status = "Cancelled" ';
-if ($status == 4) $where .= $where ? 'AND payment_status = "Reversed" ' : 'WHERE payment_status = "Reversed" ';
-if ($status == 5) $where .= $where ? 'AND payment_status = "Shipped" ' : 'WHERE payment_status = "Shipped" ';
-// Payment method filter
-if ($method == 1) $where .= $where ? 'AND payment_method = "website" ' : 'WHERE payment_status = "website" ';
-if ($method == 2) $where .= $where ? 'AND payment_method = "paypal" ' : 'WHERE payment_status = "paypal" ';
-if ($method == 3) $where .= $where ? 'AND payment_method = "stripe" ' : 'WHERE payment_status = "stripe" ';
+
 // Account ID filter
 if ($account_id) $where .= $where ? 'AND account_id = :account_id ' : 'WHERE account_id = :account_id ';
 // Retrieve the total number of products
@@ -83,26 +74,6 @@ if (isset($_GET['success_msg'])) {
     <a href="index.php?page=order_manage" class="btn">Create Order</a>
     <form action="" method="get">
         <input type="hidden" name="page" value="orders">
-        <div class="filters">
-            <a href="#"><i class="fas fa-sliders-h"></i> Filters</a>
-            <div class="list">
-                <select name="status">
-                    <option value="" disabled selected>Status</option>
-                    <option value="1"<?=$status==1?' selected':''?>>Completed</option>
-                    <option value="2"<?=$status==2?' selected':''?>>Pending</option>
-                    <option value="3"<?=$status==3?' selected':''?>>Cancelled</option>
-                    <option value="4"<?=$status==4?' selected':''?>>Reversed</option>
-                    <option value="5"<?=$status==5?' selected':''?>>Shipped</option>
-                </select>
-                <select name="method">
-                    <option value="" disabled selected>Method</option>
-                    <option value="1"<?=$method==1?' selected':''?>>Website</option>
-                    <option value="2"<?=$method==2?' selected':''?>>PayPal</option>
-                    <option value="3"<?=$method==3?' selected':''?>>Stripe</option>
-                </select>
-                <button type="submit">Apply</button>
-            </div>
-        </div>
         <div class="search">
             <label for="search">
                 <input id="search" type="text" name="search" placeholder="Search order..." value="<?=htmlspecialchars($search, ENT_QUOTES)?>" class="responsive-width-100">

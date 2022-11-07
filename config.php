@@ -1,30 +1,28 @@
 <?php
-// Database hostname, don't change this unless your hostname is different
+// Database info
+/*
+define('db_host','database-1.cq9szh8qchb5.us-west-2.rds.amazonaws.com');
+define('db_user','admin');
+define('db_pass','');
+define('db_name','fth_fyp');
+*/
 define('db_host','localhost');
-// Database username
 define('db_user','root');
-// Database password
-define('db_pass','fthing1117');
-// Database name
-define('db_name','shoppingcart_advanced');
-// This will change the title on the website
-define('site_name','AI BookStore');
-// Currency code, default is USD, you can view the list here: http://cactus.io/resources/toolbox/html-currency-symbol-codes
+define('db_pass','');
+define('db_name','fth_fyp');
+
+// Website details
+define('site_name','<i class="fa fa-book" style="font-size:25px"></i> FTH BookStore ');
 define('currency_code','RM');
-// Featured image URL
+
 define('featured_image','uploads/books_background.jpg');
-// Default payment status
+define('about_image','uploads/reading.jpg');
+define('contact_image','uploads/reading2.jpg');
+
 define('default_payment_status','Completed');
-// Account required for checkout?
 define('account_required',true);
-// The from email that will appear on the customer's order details email
-define('mail_from','noreply@yourwebsite.com');
-// Send mail to the customers, etc?
-define('mail_enabled',true);
-// Your email
-define('email','foongtzehing@gmail.com');
-// Receive email notifications?
-define('email_notifications',true);
+
+
 // Rewrite URL?
 define('rewrite_url',false);
 
@@ -43,11 +41,11 @@ define('paypal_testmode',false);
 // Currency to use with PayPal, default is USD
 define('paypal_currency','MYR');
 // PayPal IPN url, this should point to the IPN file located in the "ipn" directory
-define('paypal_ipn_url','http://localhost:1234/advanced/ipn/paypal.php');
+define('paypal_ipn_url','http://fth-fyp.me/fyp/ipn/paypal.php');
 // PayPal cancel URl, the page the customer returns to when they cancel the payment
-define('paypal_cancel_url','http://localhost:1234/advanced/cart');
+define('paypal_cancel_url','http://fth-fyp.me/fyp/index.php?page=cart');
 // PayPal return URL, the page the customer returns to after the payment has been made:
-define('paypal_return_url','http://localhost:1234/advanced/placeorder');
+define('paypal_return_url','http://fth-fyp.me/fyp/index.php?page=placeorder');
 
 
 ?>

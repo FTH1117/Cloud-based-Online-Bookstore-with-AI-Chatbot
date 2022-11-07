@@ -9,6 +9,7 @@ if (isset($_SESSION['cart'])) {
 if (isset($_SESSION['discount'])) {
     unset($_SESSION['discount']);
 }
+
 ?>
 <?=template_header('Place Order')?>
 
@@ -16,8 +17,9 @@ if (isset($_SESSION['discount'])) {
 <p class="content-wrapper error"><?=$error?></p>
 <?php else: ?>
 <div class="placeorder content-wrapper">
-    <h1>Your Order Has Been Placed</h1>
-    <p>Thank you for ordering with us! We'll contact you by email with your order details.</p>
+    <h1>Orders have been placed</h1>
+    <p>Thank you for ordering with us!</p>
+	<p>If you purchase a E-book, please <a href="index.php?page=myaccount&tab=downloads" target="_blank">CLICK HERE</a>.</p>	
 </div>
 <?php endif; ?>
 

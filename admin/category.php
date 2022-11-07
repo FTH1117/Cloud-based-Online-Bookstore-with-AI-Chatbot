@@ -64,13 +64,6 @@ if (isset($_GET['id'])) {
             <label for="name"><i class="required">*</i> Name</label>
             <input id="name" type="text" name="name" placeholder="Name" value="<?=$category['name']?>" required>
 
-            <label for="parent_id">Parent</label>
-            <select id="parent_id" name="parent_id">
-                <option value="0">(none)</option>
-                <?php foreach ($categories as $c): ?>
-                <option value="<?=$c['id']?>"<?=$c['id']==$category['parent_id']?' selected':''?>><?=$c['name']?></option>
-                <?php endforeach; ?>
-            </select>
 
         </div>
     </div>

@@ -2,6 +2,10 @@
 // Prevent direct access to file
 defined('shoppingcart') or exit;
 // Default values for the input form elements
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 $account = [
     'first_name' => '',
     'last_name' => '',
@@ -174,91 +178,7 @@ if (isset($_POST['method'], $_POST['first_name'], $_POST['last_name'], $_POST['a
     }
     if (!$errors && $products_in_cart) {
         // No errors, process the order
-        // Process Stripe Payment
-        if (stripe_enabled && $_POST['method'] == 'stripe') {
-            // Include the stripe lib
-            require_once 'lib/stripe/init.php';
-            $stripe = new \Stripe\StripeClient(stripe_secret_key);
-            $line_items = [];
-            // Iterate the products in cart and add each product to the array above
-            for ($i = 0; $i < count($products_in_cart); $i++) {
-                $line_items[] = [
-                    'quantity' => $products_in_cart[$i]['quantity'],
-                    'price_data' => [
-                        'currency' => stripe_currency,
-                        'unit_amount' => (float)$products_in_cart[$i]['final_price'] * 100,
-                        'product_data' => [
-                            'name' => $products_in_cart[$i]['meta']['name'],
-                            'metadata' => [
-                                'item_id' => $products_in_cart[$i]['id'],
-                                'item_options' => $products_in_cart[$i]['options'],
-                                'item_shipping' => $products_in_cart[$i]['shipping_price']
-                            ]
-                        ]
-                    ]
-                ];
-            }
-            // Add the shipping
-            $line_items[] = [
-                'quantity' => 1,
-                'price_data' => [
-                    'currency' => stripe_currency,
-                    'unit_amount' => $shippingtotal*100,
-                    'product_data' => [
-                        'name' => 'Shipping',
-                        'description' => $selected_shipping_method_name,
-                        'metadata' => [
-                            'item_id' => 'shipping',
-                            'shipping_method' => $selected_shipping_method_name
-                        ]
-                    ]
-                ]
-            ];
-            // Webhook that will notify the stripe IPN file when a payment has been made
-            $webhooks = $stripe->webhookEndpoints->all();
-            $webhook = null;
-            $secret = '';
-            foreach ($webhooks as $wh) {
-                if ($wh['description'] == 'codeshack_shoppingcart_system') {
-                    $webhook = $wh;
-                    $secret = $webhook['metadata']['secret'];
-                }
-            }
-            if ($webhook == null) {
-                $webhook = $stripe->webhookEndpoints->create([
-                    'url' => stripe_ipn_url,
-                    'description' => 'codeshack_shoppingcart_system',
-                    'enabled_events' => ['checkout.session.completed'],
-                    'metadata' => ['secret' => '']
-                ]);
-                $secret = $webhook['secret'];
-                $stripe->webhookEndpoints->update($webhook['id'], ['metadata' => ['secret' => $secret] ]);
-            }
-            $stripe->webhookEndpoints->update($webhook['id'], ['url' => stripe_ipn_url . '?key=' . $secret]);
-            // Create the stripe checkout session and redirect the user
-            $session = $stripe->checkout->sessions->create([
-                'success_url' => stripe_return_url,
-                'cancel_url' => stripe_cancel_url,
-                'payment_method_types' => ['card'],
-                'line_items' => $line_items,
-                'mode' => 'payment',
-                'customer_email' => isset($account['email']) && !empty($account['email']) ? $account['email'] : $_POST['email'],
-                'metadata' => [
-                    'first_name' => $_POST['first_name'],
-                    'last_name' => $_POST['last_name'],
-                    'address_street' => $_POST['address_street'],
-                    'address_city' => $_POST['address_city'],
-                    'address_state' => $_POST['address_state'],
-                    'address_zip' => $_POST['address_zip'],
-                    'address_country' => $_POST['address_country'],
-                    'account_id' => $account_id,
-                    'discount_code' => isset($_SESSION['discount']) ? $_SESSION['discount'] : ''
-                ]
-            ]);
-            // Redirect to Stripe checkout
-            header('Location: stripe-redirect.php?stripe_session_id=' . $session['id']);
-            exit;
-        }
+        
         // Process PayPal Payment
         if (paypal_enabled && $_POST['method'] == 'paypal') {
             // Process PayPal Checkout
@@ -312,59 +232,7 @@ if (isset($_POST['method'], $_POST['first_name'], $_POST['last_name'], $_POST['a
             // End the script, don't need to execute anything else
             exit;
         }
-        // Process Coinbase Payment
-        if (coinbase_enabled && $_POST['method'] == 'coinbase') {
-            // Include the coinbase library
-            require_once 'lib/vendor/autoload.php';
-            $coinbase = CoinbaseCommerce\ApiClient::init(coinbase_key);
-            // Variable that will stored all details for all products in the shopping cart
-            $metadata = [];
-            $description = '';
-            // Add all the products that are in the shopping cart to the data array variable
-            for ($i = 0; $i < count($products_in_cart); $i++) {
-                // Add product data to array
-                $metadata['item_' . ($i+1)] = $products_in_cart[$i]['id'];
-                $metadata['item_name_' . ($i+1)] = $products_in_cart[$i]['meta']['name'];
-                $metadata['qty_' . ($i+1)] = $products_in_cart[$i]['quantity'];
-                $metadata['amount_' . ($i+1)] = $products_in_cart[$i]['final_price'];
-                $metadata['option_' . ($i+1)] = $products_in_cart[$i]['options'];
-                $description .= 'x' . $products_in_cart[$i]['quantity'] . ' ' . $products_in_cart[$i]['meta']['name'] . ', ';
-            }
-            // Add customer info
-            $metadata['email'] = isset($account['email']) && !empty($account['email']) ? $account['email'] : $_POST['email'];
-            $metadata['first_name'] = $_POST['first_name'];
-            $metadata['last_name'] = $_POST['last_name'];
-            $metadata['address_street'] = $_POST['address_street'];
-            $metadata['address_city'] = $_POST['address_city'];
-            $metadata['address_state'] = $_POST['address_state'];
-            $metadata['address_zip'] = $_POST['address_zip'];
-            $metadata['address_country'] = $_POST['address_country'];
-            $metadata['account_id'] = $account_id;
-            $metadata['discount_code'] = isset($_SESSION['discount']) ? $_SESSION['discount'] : '';
-            $metadata['shipping_method'] = $selected_shipping_method_name;
-            // Add shipping
-            $metadata['shipping'] = $shippingtotal;
-            // Add number of cart items
-            $metadata['num_cart_items'] = count($products_in_cart);
-            // Data
-            $data = [
-                'name' => count($products_in_cart) . ' Item' . (count($products_in_cart) > 1 ? 's' : ''),
-                'description' => rtrim($description, ', '),
-                'local_price' => [
-                    'amount' => ($subtotal-$discounttotal)+$shippingtotal,
-                    'currency' => coinbase_currency
-                ],
-                'metadata' => $metadata,
-                'pricing_type' => 'fixed_price',
-                'redirect_url' => coinbase_return_url,
-                'cancel_url' => coinbase_cancel_url
-            ];
-            // Create charge
-            $charge = CoinbaseCommerce\Resources\Charge::create($data);
-            // Redirect to hosted checkout page
-            header('Location: ' . $charge->hosted_url);
-            exit;
-        }
+        
         if (pay_on_delivery_enabled && $_POST['method'] == 'payondelivery') {
             // Process Normal Checkout
             // Generate unique transaction ID
@@ -419,20 +287,7 @@ if (isset($_POST['method'], $_POST['first_name'], $_POST['last_name'], $_POST['a
                 $_SESSION['account_id'] = $account_id;
                 $_SESSION['account_role'] = $account ? $account['role'] : 'Member';
             }
-            // Send order details to the specified email address
-            send_order_details_email(
-                isset($account['email']) && !empty($account['email']) ? $account['email'] : $_POST['email'],
-                $products_in_cart,
-                $_POST['first_name'],
-                $_POST['last_name'],
-                $_POST['address_street'],
-                $_POST['address_city'],
-                $_POST['address_state'],
-                $_POST['address_zip'],
-                $_POST['address_country'],
-                ($subtotal-$discounttotal)+$shippingtotal,
-                $order_id
-            );
+
             header('Location: ' . url('index.php?page=placeorder'));
             exit;
         }

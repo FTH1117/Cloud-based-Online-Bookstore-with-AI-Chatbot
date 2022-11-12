@@ -71,7 +71,7 @@ echo <<<EOT
 	<script type="text/javascript">
     (function(d, m){
         var kommunicateSettings = 
-            {"appId":"2e360a46a06e59f4100aede4c9aa69796","popupWidget":true,"automaticChatOpenOnNavigation":true};
+            {"appId":"34a66e6ea6f128a69da1ed9ba4e7a3521","popupWidget":true,"automaticChatOpenOnNavigation":true};
         var s = document.createElement("script"); s.type = "text/javascript"; s.async = true;
         s.src = "https://widget.kommunicate.io/v2/kommunicate.app";
         var h = document.getElementsByTagName("head")[0]; h.appendChild(s);
